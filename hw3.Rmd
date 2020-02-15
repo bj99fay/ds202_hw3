@@ -1,0 +1,109 @@
+---
+title: "Homework 3"
+author: "Bernard Fay; GitHub: bj99fay"
+date: "2/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plyr)
+library(ggplot2)
+```
+
+## Tips at Restaurants
+
+In this homework we will use the `tips` data set. This data set is part of the `reshape2` package. You can load the data set by executing the command:
+```{r}
+data(tips, package="reshape2")
+```
+
+
+1. How many parties did the waiter serve? Store the number in `numParty` and print.
+
+```{r}
+numParty <- nrow(tips)
+names(numParty) <- "No. parties"
+numParty
+```
+
+2. What are the types of variables in the data frame `tips`? Include the code and also explain verbally.
+
+```{r}
+sapply(tips, class)
+```
+
+"total_bill" and "tip" are numeric because they can take on any numeric value and can have decimals. "sex", "smoker", "day", and "time" are factors because they each represent a category that can only have a limited number of possible values ("yes" or "no" in the case of smoker, etc). "size" is an integer because the number of people in the party can only be a whole number.
+
+
+3. Create a vector named `day` containing the day of visits in `tips`. The factor levels should be ordered from Thursday to Sunday. Print the variable.
+
+```{r}
+tips$day <- relevel(tips$day, "Sun")
+tips$day <- relevel(tips$day, "Sat")
+tips$day <- relevel(tips$day, "Fri")
+tips$day <- relevel(tips$day, "Thur")
+day <- levels(tips$day)
+day
+```
+
+4. Create a data frame named `female5` containing the meal paid by a female payer in a party with size greater than or euqal to 5. Print the data frame.
+
+```{r}
+female5 <- tips[which(tips$sex=="Female" & tips$size >= 5), ]
+female5
+```
+
+5. How does the tipping amount (`tip`) depend on the overall bill (`total_bill`)? Use the `ggplot2` package to make a chart. Describe the relationship in words.  
+
+```{r}
+ggplot(tips, aes(x = total_bill, y = tip)) +
+    geom_point()
+```
+
+As the total_bill increase, the tip amount increases, almost proportionally.
+
+6. Describe at least two types of anomalies in the previous plot. What do they mean?
+
+One anomoly is the points where the tip is much higher than one would have guessed based on the total_bill and the trend in the plot. The other anomoly is where the tip is much lower than the trend would indicate based on the total_bill.
+
+7. Introduce a variable `tiprate` into the data set which stands for the rate of tips. What is the average rate for tips? Explain verbally. 
+
+```{r}
+tips$tiprate <- tips$tip / (tips$total_bill - tips$tip)
+mean(tips$tiprate)
+```
+
+The tip is approximately 20.21% of the bill, on average.
+
+8. Make a boxplot of the tip rate by time. The x-axis should be ordered by lunch and then dinner. Use `ggplot2` to make a chart. Verbally explain the chart.
+
+```{r}
+tips$time <- relevel(tips$time, "Lunch")
+ggplot(tips, aes(x=time, y=tiprate)) + 
+    geom_boxplot()
+```
+
+Dinner has a much larger range of typical values as indicated by the bigger boxes and longer lines. However, dinner also has more outliers than dinner. This mean that the tips at lunch are much more predictable than those at dinner.
+
+9. How does smoking behavior and gender of the person who pays impact the relationship between tip and total bill? Find a visualization that incorporates all four variables. Interpret the result.
+
+```{r}
+ggplot(tips, aes(x=smoker, y=tiprate, fill=sex)) + 
+    geom_boxplot()
+```
+
+Non-smoking women tend to tip at a more consistent rate than men, but also tip at aa slighlty lower rate. Smoking women similarly tip consistently, but tip at a higher rate than smoking men most of the time. Overall, men who smoke tip at the lowest rate, but also vary their tipping rate the most.
+
+10. Use ggplot2 to find a graphical summary of the relationship between day of the week and gender of the person paying the bill. What can you say about this relationship?
+
+```{r}
+ggplot(tips, aes(x=time, fill=sex)) + 
+    geom_bar(position=position_dodge()) + 
+    labs(title = "Number of Tippers by Time and Sex")
+```
+
+A similar number of women and men tip at lunch. However, the number of men tipping drastically increases at dinner. This is likely because men tend to pay the bill for their family. However, men may also go out for dinner more often than women.
+
+
+Note: your submission is supposed to be fully reproducible, i.e. the TA and I will 'knit' your submission in RStudio. 
